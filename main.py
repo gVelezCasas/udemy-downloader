@@ -1004,7 +1004,7 @@ def cleanup(path):
             logger.exception(f"Error deleting file: {file_list}")
     os.removedirs(path)
 
-
+#TODO make the ffmpeg work with the max threads there are in the system or let the user select them by default max 
 def mux_process(video_title, video_filepath, audio_filepath, output_path):
     """
     @author Jayapraveen
@@ -1060,7 +1060,7 @@ def decrypt(kid, in_filepath, out_filepath):
 
     return ret_code
 
-
+#* adding a feauture by replacing the spaces for _ in order to not have error will compiling the video
 def handle_segments(url, format_id, video_title, output_path, lecture_file_name, chapter_dir):
     os.chdir(os.path.join(chapter_dir))
     file_name = lecture_file_name.replace("%", "")
@@ -1136,6 +1136,7 @@ def handle_segments(url, format_id, video_title, output_path, lecture_file_name,
         .replace("Ÿ", "Y")
         .replace("ÿ", "y")
         .replace("%", "")
+        .replace(" ","_")
     )
     # commas cause problems with shaka-packager resulting in decryption failure
     file_name = file_name.replace(",", "")
