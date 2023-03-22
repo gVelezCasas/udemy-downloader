@@ -1013,11 +1013,14 @@ def mux_process(video_title, video_filepath, audio_filepath, output_path):
     transcode = "-hwaccel cuda -hwaccel_output_format cuda" if use_nvenc else []
     if os.name == "nt":
         if use_h265:
+            #TODO averiguar como poner el comando correcto con el siguiente comando o darle vueltas, si no,no funciona con el cuda : ffmpeg -hwaccel cuda -hwaccel_output_format cuda -i "001 Introducción al curso.mp4" -c:v hevc_nvenc -preset slow prueba2.mp4
             command = 'ffmpeg {} -y -i "{}" -i "{}" -c:v {} -crf {} -preset {} -c:a copy -fflags +bitexact -map_metadata -1 -metadata title="{}" "{}"'.format(
                 transcode, video_filepath, audio_filepath, codec, h265_crf, h265_preset, video_title, output_path
             )
         else:
-            command = 'ffmpeg -y -i "{}" -i "{}" -c:v copy -vtag hvc1 -c:a copy -fflags +bitexact -map_metadata -1 -metadata title="{}" "{}"'.format(
+            #TODO tenemos que ver o manergar la excepcion del codec por que si el equipo no tiene instalado el codec del hevc o el hvc1 va a dar un error en el muxing igual que arriba
+            #- vtag hvc1 its been remove because it cause problems with the codec
+            command = 'ffmpeg -y -i "{}" -i "{}" -c:v copy -c:a copy -fflags +bitexact -map_metadata -1 -metadata title="{}" "{}"'.format(
                 video_filepath, audio_filepath, video_title, output_path
             )
     else:
@@ -1367,7 +1370,8 @@ def process_lecture(lecture, lecture_path, lecture_file_name, chapter_dir):
                             if use_h265:
                                 codec = "hevc_nvenc" if use_nvenc else "libx265"
                                 transcode = "-hwaccel cuda -hwaccel_output_format cuda".split(" ") if use_nvenc else []
-                                cmd = ["ffmpeg", *transcode, "-y", "-i", lecture_path, "-c:v", codec, "-c:a", "copy", "-f", "mp4", tmp_file_path]
+                                # applaying format to the temporal file with single quote
+                                cmd = ["ffmpeg", *transcode, "-y", "-i", lecture_path, "-c:v", codec, "-c:a", "copy", "-f", "mp4", "\""+tmp_file_path+"\""]
                                 process = subprocess.Popen(cmd)
                                 log_subprocess_output("FFMPEG-STDOUT", process.stdout)
                                 log_subprocess_output("FFMPEG-STDERR", process.stderr)
@@ -1404,6 +1408,8 @@ def parse_new(_udemy):
         chapter_title = chapter.get("chapter_title")
         chapter_index = chapter.get("chapter_index")
         chapter_dir = os.path.join(course_dir, chapter_title)
+        # taking out the spaces in the dir subfolder
+        chapter_dir.replace(' ', '')
         if not os.path.exists(chapter_dir):
             os.mkdir(chapter_dir)
         logger.info(f"======= Processing chapter {chapter_index} of {total_chapters} =======")
